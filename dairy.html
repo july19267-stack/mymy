@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>心情日记</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', 'PingFang SC', sans-serif;
+      background: linear-gradient(135deg, #dbeafe, #fbcfe8);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 640px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      font-size: 32px;
+      background: linear-gradient(90deg, #6366f1, #ec4899);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    header p {
+      font-size: 14px;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 10px;
+    }
+
+    .date-picker {
+      margin-bottom: 20px;
+    }
+
+    .date-picker input[type="date"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      color: #333;
+      background: #fafafa;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .date-picker input[type="date"]:focus {
+      border-color: #5B9BD5;
+    }
+
+    .mood-selector {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+    }
+
+    .mood-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 32px;
+    }
+
+    .mood-btn span {
+      font-size: 12px;
+      color: #888;
+    }
+
+    .mood-btn:hover {
+      background: rgba(99,102,241,0.1);
+      transform: translateY(-3px);
+    }
+
+    .mood-btn.active {
+      border-color: #5B9BD5;
+      background: #e8f2fc;
+      transform: scale(1.1);
+    }
+
+    .diary-text textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+      font-family: inherit;
+      background: #fafafa;
+      transition: border-color 0.2s;
+    }
+
+    .diary-text textarea:focus {
+      border-color: #5B9BD5;
+    }
+
+    .word-count {
+      text-align: right;
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 6px;
+    }
+
+    .tag-selector {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .tag-btn {
+      padding: 5px 12px;
+      border: 1px solid #ddd;
+      border-radius: 16px;
+      background: #fafafa;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: inherit;
+      color: #555;
+      transition: all 0.2s;
+    }
+
+    .tag-btn:hover { background: #f0f7ff; }
+
+    .tag-btn.active {
+      background: #e8f2fc;
+      color: #2c7be5;
+      border-color: #5B9BD5;
+    }
+
+    .tag-btn.remove-custom {
+      position: relative;
+      padding-right: 24px;
+    }
+
+    .tag-btn.remove-custom::after {
+      content: '\00d7';
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      color: #999;
+    }
+
+    .tag-btn.remove-custom:hover::after { color: #e57373; }
+
+    .custom-tag-input {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .custom-tag-input input {
+      width: 80px;
+      padding: 5px 10px;
+      border: 1px solid #ddd;
+      border-radius: 16px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      background: #fafafa;
+      color: #333;
+      transition: border-color 0.2s;
+    }
+
+    .custom-tag-input input:focus { border-color: #5B9BD5; }
+
+    .custom-tag-input button {
+      padding: 5px 10px;
+      border: 1px solid #5B9BD5;
+      border-radius: 16px;
+      background: #5B9BD5;
+      color: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .entry-tags {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .entry-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: #e8f2fc;
+      color: #2c7be5;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      font-family: inherit;
+    }
+
+    .btn:hover {
+      opacity: 0.85;
+    }
+
+    .btn-save {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+    }
+
+    .btn-delete {
+      background: #e57373;
+      color: #fff;
+      flex: 0.5;
+    }
+
+    .history-section h2 {
+      font-size: 18px;
+      color: #2c3e50;
+      margin-bottom: 14px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #333;
+      background: #fafafa;
+      outline: none;
+      font-family: inherit;
+      margin-bottom: 10px;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: #5B9BD5;
+    }
+
+    .mood-filter {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 6px 12px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      background: #fafafa;
+      cursor: pointer;
+      font-size: 14px;
+      font-family: inherit;
+      color: #555;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover {
+      background: #f0f7ff;
+    }
+
+    .filter-btn.active {
+      background: #5B9BD5;
+      color: #fff;
+      border-color: #5B9BD5;
+    }
+
+    .history-empty {
+      text-align: center;
+      color: #aaa;
+      padding: 30px 0;
+      font-size: 14px;
+    }
+
+    .history-entry {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+      background: #fafafa;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .history-entry:hover {
+      background: #f0f2f5;
+    }
+
+    .history-entry .mood {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .history-entry .info {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .history-entry .date {
+      font-size: 13px;
+      color: #888;
+    }
+
+    .history-entry .preview {
+      font-size: 14px;
+      color: #555;
+      white-space: pre-line;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      margin-top: 2px;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: #333;
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .stats-section h2 {
+      font-size: 18px;
+      color: #2c3e50;
+      margin-bottom: 14px;
+    }
+
+    .period-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 20px;
+      background: #f0f2f5;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .period-tab {
+      flex: 1;
+      padding: 8px 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-family: inherit;
+      color: #888;
+      transition: all 0.2s;
+    }
+
+    .period-tab.active {
+      background: #5B9BD5;
+      color: #fff;
+    }
+
+    .stats-subtitle {
+      font-size: 15px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 12px;
+    }
+
+    .stats-empty {
+      text-align: center;
+      color: #aaa;
+      padding: 20px 0;
+      font-size: 14px;
+    }
+
+    .mood-dist {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .mood-dist-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1 1 45%;
+      min-width: 0;
+      background: #fafafa;
+      border-radius: 10px;
+      padding: 10px 14px;
+    }
+
+    .mood-dist-item .emoji {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .mood-dist-item .bar-wrap {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .mood-dist-item .label {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 4px;
+    }
+
+    .mood-dist-item .bar-bg {
+      height: 8px;
+      background: #eee;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .mood-dist-item .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+
+    .mood-dist-item .count {
+      font-size: 13px;
+      font-weight: bold;
+      color: #555;
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+
+    .trend-canvas-wrap {
+      position: relative;
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .trend-canvas-wrap canvas {
+      display: block;
+    }
+
+    .media-section { margin-bottom: 20px; }
+
+    .media-actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .media-btn {
+      padding: 8px 14px;
+      border: 1px dashed #ccc;
+      border-radius: 8px;
+      background: #fafafa;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: inherit;
+      color: #666;
+      transition: all 0.2s;
+    }
+
+    .media-btn:hover { border-color: #5B9BD5; color: #5B9BD5; }
+
+    .sticker-panel {
+      display: none;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 10px;
+      background: #fafafa;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #eee;
+    }
+
+    .sticker-panel.open { display: flex; }
+
+    .sticker-item {
+      font-size: 24px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+
+    .sticker-item:hover { background: #e8f2fc; }
+
+    .image-preview-grid {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .img-thumb-wrap {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #eee;
+    }
+
+    .img-thumb-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .img-thumb-remove {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 20px;
+      height: 20px;
+      background: rgba(0,0,0,0.5);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .history-images {
+      display: flex;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .history-images img {
+      width: 36px;
+      height: 36px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .storage-bar {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    .storage-bar .bar-bg {
+      height: 4px;
+      background: #eee;
+      border-radius: 2px;
+      margin-top: 4px;
+      overflow: hidden;
+    }
+
+    .storage-bar .bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: #5B9BD5;
+      transition: width 0.3s;
+    }
+
+    .storage-bar .bar-fill.warn { background: #FFB347; }
+    .storage-bar .bar-fill.danger { background: #E57373; }
+
+    .img-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .img-modal.open { display: flex; }
+
+    .img-modal img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 8px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body { background-color: #1a1a2e; color: #e0e0e0; }
+      header h1 { color: #e0e0e0; }
+      .card { background: #16213e; box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+      .section-title { color: #999; }
+      .date-picker input[type="date"] { background: #1a1a2e; color: #e0e0e0; border-color: #333; }
+      .diary-text textarea { background: #1a1a2e; color: #e0e0e0; border-color: #333; }
+      .mood-btn span { color: #999; }
+      .mood-btn:hover { background: #1a1a3e; }
+      .mood-btn.active { border-color: #5B9BD5; background: #1a2a4e; }
+      .history-section h2 { color: #e0e0e0; }
+      .history-entry { background: #1a1a2e; }
+      .history-entry:hover { background: #0f3460; }
+      .search-input { background: #1a1a2e; color: #e0e0e0; border-color: #333; }
+      .filter-btn { background: #1a1a2e; color: #bbb; border-color: #333; }
+      .filter-btn:hover { background: #1a1a3e; }
+      .filter-btn.active { background: #5B9BD5; color: #fff; border-color: #5B9BD5; }
+      .tag-btn { background: #1a1a2e; color: #bbb; border-color: #333; }
+      .tag-btn:hover { background: #1a1a3e; }
+      .tag-btn.active { background: #1a2a4e; color: #7ab8f5; border-color: #5B9BD5; }
+      .custom-tag-input input { background: #1a1a2e; color: #e0e0e0; border-color: #333; }
+      .entry-tag { background: #1a2a4e; color: #7ab8f5; }
+      .history-entry .preview { color: #bbb; }
+      .stats-section h2 { color: #e0e0e0; }
+      .stats-subtitle { color: #e0e0e0; }
+      .period-tabs { background: #1a1a2e; }
+      .period-tab { color: #999; }
+      .period-tab.active { background: #5B9BD5; color: #fff; }
+      .mood-dist-item { background: #1a1a2e; }
+      .mood-dist-item .bar-bg { background: #333; }
+      .mood-dist-item .count { color: #ccc; }
+      .media-btn { background: #1a1a2e; color: #bbb; border-color: #444; }
+      .sticker-panel { background: #1a1a2e; border-color: #333; }
+      .sticker-item:hover { background: #1a2a4e; }
+      .img-thumb-wrap { border-color: #333; }
+      .storage-bar .bar-bg { background: #333; }
+      .toast { background: #e0e0e0; color: #1a1a2e; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📔 心情日记</h1>
+      <p>记录每一天的心情</p>
+    </header>
+
+    <div class="card">
+      <div class="date-picker">
+        <div class="section-title">日期</div>
+        <input type="date" id="dateInput">
+      </div>
+
+      <div class="section-title">今天的心情</div>
+      <div class="mood-selector" id="moodSelector">
+        <button class="mood-btn" data-mood="😄">😄<span>开心</span></button>
+        <button class="mood-btn" data-mood="😊">😊<span>不错</span></button>
+        <button class="mood-btn" data-mood="😐">😐<span>一般</span></button>
+        <button class="mood-btn" data-mood="😢">😢<span>难过</span></button>
+        <button class="mood-btn" data-mood="😡">😡<span>生气</span></button>
+      </div>
+
+      <div class="section-title">标签</div>
+      <div class="tag-selector" id="tagSelector"></div>
+
+      <div class="media-section">
+        <div class="section-title">图片 / 贴纸</div>
+        <div class="media-actions">
+          <button class="media-btn" id="uploadBtn">📷 上传图片</button>
+          <button class="media-btn" id="stickerToggle">😜 贴纸</button>
+          <input type="file" id="imageInput" accept="image/*" multiple hidden>
+        </div>
+        <div class="sticker-panel" id="stickerPanel"></div>
+        <div class="image-preview-grid" id="imagePreview"></div>
+      </div>
+
+      <div class="diary-text">
+        <div class="section-title">日记内容</div>
+        <textarea id="diaryText" placeholder="写下今天的心情..."></textarea>
+        <div class="word-count" id="wordCount">已输入 0 字</div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-save" id="saveBtn">保存</button>
+        <button class="btn btn-delete" id="deleteBtn">删除</button>
+      </div>
+      <div class="storage-bar" id="storageBar"></div>
+    </div>
+
+    <div class="card stats-section">
+      <h2>📊 心情统计</h2>
+      <div class="period-tabs" id="periodTabs">
+        <button class="period-tab" data-period="week">本周</button>
+        <button class="period-tab active" data-period="month">本月</button>
+        <button class="period-tab" data-period="year">本年</button>
+      </div>
+      <div class="stats-subtitle">心情分布</div>
+      <div class="mood-dist" id="moodDist"></div>
+      <div class="stats-subtitle">心情趋势</div>
+      <div class="trend-canvas-wrap">
+        <canvas id="trendCanvas"></canvas>
+      </div>
+
+    <div class="card history-section">
+      <h2>📖 历史记录</h2>
+      <input type="text" class="search-input" id="searchInput" placeholder="搜索日期、内容关键词...">
+      <div class="mood-filter" id="moodFilter">
+        <button class="filter-btn active" data-mood="">全部</button>
+        <button class="filter-btn" data-mood="😄">😄</button>
+        <button class="filter-btn" data-mood="😊">😊</button>
+        <button class="filter-btn" data-mood="😐">😐</button>
+        <button class="filter-btn" data-mood="😢">😢</button>
+        <button class="filter-btn" data-mood="😡">😡</button>
+      </div>
+      <div class="section-title">按标签筛选</div>
+      <div class="tag-selector" id="tagFilter"></div>
+      <div id="historyList"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <div class="img-modal" id="imgModal"><img id="imgModalImg" src=""></div>
+
+  * {
+  transition: all 0.25s ease;
+}
+
+  <script>
+    const dateInput = document.getElementById('dateInput');
+    const moodSelector = document.getElementById('moodSelector');
+    const moodBtns = moodSelector.querySelectorAll('.mood-btn');
+    const diaryText = document.getElementById('diaryText');
+    const saveBtn = document.getElementById('saveBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const historyList = document.getElementById('historyList');
+    const toastEl = document.getElementById('toast');
+    const wordCountEl = document.getElementById('wordCount');
+    const searchInput = document.getElementById('searchInput');
+    const moodFilter = document.getElementById('moodFilter');
+    const filterBtns = moodFilter.querySelectorAll('.filter-btn');
+
+    const tagSelector = document.getElementById('tagSelector');
+    const tagFilterEl = document.getElementById('tagFilter');
+
+    const PRESET_TAGS = ['工作', '生活', '学习', '情感'];
+
+    let selectedMood = '';
+    let filterMood = '';
+    let selectedTags = [];
+    let filterTag = '';
+    let selectedImages = []; // base64 strings
+    let selectedStickers = []; // emoji strings
+
+    const MAX_IMG_KB = 150;
+    const MAX_IMAGES = 3;
+    const STICKER_LIST = [
+      '🌸','🌈','☀️','🌙','⭐','🍀','🌻','🎵',
+      '💖','💕','✨','🎉','🎂','🍰','☕','🧸',
+      '🐱','🐶','🐰','🐼','🦊','🐸','🐝','🦋',
+      '💪','🏃','📚','🎮','🎬','🎨','🎸','🏖️'
+    ];
+
+    function updateWordCount() {
+      const len = diaryText.value.replace(/\s/g, '').length;
+      wordCountEl.textContent = '已输入 ' + len + ' 字';
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function compressImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let w = img.width, h = img.height;
+            const maxDim = 600;
+            if (w > maxDim || h > maxDim) {
+              if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+              else { w = Math.round(w * maxDim / h); h = maxDim; }
+            }
+            canvas.width = w;
+            canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            let quality = 0.7;
+            let result = canvas.toDataURL('image/jpeg', quality);
+            while (result.length > MAX_IMG_KB * 1370 && quality > 0.1) {
+              quality -= 0.1;
+              result = canvas.toDataURL('image/jpeg', quality);
+            }
+            resolve(result);
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderImagePreview() {
+      const el = document.getElementById('imagePreview');
+      const allMedia = [
+        ...selectedStickers.map((s, i) => `<div class="img-thumb-wrap" style="display:flex;align-items:center;justify-content:center;font-size:36px;background:#fafafa"><span>${s}</span><button class="img-thumb-remove" data-type="sticker" data-idx="${i}">&times;</button></div>`),
+        ...selectedImages.map((src, i) => `<div class="img-thumb-wrap"><img src="${src}"><button class="img-thumb-remove" data-type="image" data-idx="${i}">&times;</button></div>`)
+      ];
+      el.innerHTML = allMedia.join('');
+      el.querySelectorAll('.img-thumb-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const type = btn.dataset.type;
+          const idx = parseInt(btn.dataset.idx);
+          if (type === 'sticker') selectedStickers.splice(idx, 1);
+          else selectedImages.splice(idx, 1);
+          renderImagePreview();
+        });
+      });
+      el.querySelectorAll('.img-thumb-wrap img').forEach(img => {
+        img.addEventListener('click', () => {
+          document.getElementById('imgModalImg').src = img.src;
+          document.getElementById('imgModal').classList.add('open');
+        });
+      });
+    }
+
+    function renderStickerPanel() {
+      const panel = document.getElementById('stickerPanel');
+      panel.innerHTML = STICKER_LIST.map(s => `<button class="sticker-item">${s}</button>`).join('');
+      panel.querySelectorAll('.sticker-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedStickers.push(btn.textContent);
+          renderImagePreview();
+        });
+      });
+    }
+
+    function getStorageUsage() {
+      let total = 0;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        total += (key.length + localStorage.getItem(key).length) * 2;
+      }
+      return total;
+    }
+
+    function renderStorageBar() {
+      const el = document.getElementById('storageBar');
+      const used = getStorageUsage();
+      const limit = 5 * 1024 * 1024;
+      const pct = Math.min(100, Math.round(used / limit * 100));
+      const usedKB = (used / 1024).toFixed(0);
+      const cls = pct > 90 ? 'danger' : pct > 70 ? 'warn' : '';
+      el.innerHTML = `<span>存储空间: ${usedKB}KB / 5120KB (${pct}%)</span><div class="bar-bg"><div class="bar-fill ${cls}" style="width:${pct}%"></div></div>`;
+    }
+
+    function getCustomTags() {
+      try { return JSON.parse(localStorage.getItem('moodDiaryTags')) || []; }
+      catch { return []; }
+    }
+
+    function saveCustomTags(tags) {
+      localStorage.setItem('moodDiaryTags', JSON.stringify(tags));
+    }
+
+    function getAllTags() {
+      return [...PRESET_TAGS, ...getCustomTags()];
+    }
+
+    function renderTagSelector() {
+      const tags = getAllTags();
+      const customTags = getCustomTags();
+      tagSelector.innerHTML = tags.map(tag => {
+        const isActive = selectedTags.includes(tag);
+        const isCustom = customTags.includes(tag);
+        return `<button class="tag-btn${isActive ? ' active' : ''}${isCustom ? ' remove-custom' : ''}" data-tag="${escapeHtml(tag)}">${escapeHtml(tag)}</button>`;
+      }).join('') +
+        `<div class="custom-tag-input">
+          <input type="text" id="customTagInput" placeholder="自定义" maxlength="10">
+          <button id="addCustomTag">+</button>
+        </div>`;
+
+      tagSelector.querySelectorAll('.tag-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const tag = btn.dataset.tag;
+          const isCustom = customTags.includes(tag);
+          if (isCustom && e.target === btn && e.offsetX > btn.offsetWidth - 24) {
+            if (confirm('删除自定义标签「' + tag + '」？')) {
+              saveCustomTags(customTags.filter(t => t !== tag));
+              selectedTags = selectedTags.filter(t => t !== tag);
+              renderTagSelector();
+              renderTagFilter();
+              renderList();
+            }
+            return;
+          }
+          if (selectedTags.includes(tag)) {
+            selectedTags = selectedTags.filter(t => t !== tag);
+          } else {
+            selectedTags.push(tag);
+          }
+          btn.classList.toggle('active');
+        });
+      });
+
+      const addBtn = document.getElementById('addCustomTag');
+      const input = document.getElementById('customTagInput');
+      addBtn.addEventListener('click', () => addCustomTag(input));
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') addCustomTag(input); });
+    }
+
+    function addCustomTag(input) {
+      const tag = input.value.trim();
+      if (!tag) return;
+      const all = getAllTags();
+      if (all.includes(tag)) { showToast('标签已存在'); return; }
+      const custom = getCustomTags();
+      custom.push(tag);
+      saveCustomTags(custom);
+      selectedTags.push(tag);
+      renderTagSelector();
+      renderTagFilter();
+    }
+
+    function renderTagFilter() {
+      const allTags = getAllTags();
+      tagFilterEl.innerHTML = `<button class="tag-btn${!filterTag ? ' active' : ''}" data-tag="">全部</button>` +
+        allTags.map(tag =>
+          `<button class="tag-btn${filterTag === tag ? ' active' : ''}" data-tag="${escapeHtml(tag)}">${escapeHtml(tag)}</button>`
+        ).join('');
+      tagFilterEl.querySelectorAll('.tag-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterTag = btn.dataset.tag;
+          tagFilterEl.querySelectorAll('.tag-btn').forEach(b => b.classList.toggle('active', b.dataset.tag === filterTag));
+          renderList();
+        });
+      });
+    }
+
+    function getToday() {
+      const d = new Date();
+      return d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0');
+    }
+
+    function loadData() {
+      try {
+        return JSON.parse(localStorage.getItem('moodDiary')) || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function saveData(data) {
+      try {
+        localStorage.setItem('moodDiary', JSON.stringify(data));
+      } catch {
+        showToast('存储空间不足，无法保存');
+      }
+    }
+
+    function loadEntry(dateStr) {
+      const data = loadData();
+      const entry = data[dateStr];
+      if (entry) {
+        selectedMood = entry.mood || '';
+        diaryText.value = entry.text || '';
+        selectedTags = entry.tags ? [...entry.tags] : [];
+        selectedImages = entry.images ? [...entry.images] : [];
+        selectedStickers = entry.stickers ? [...entry.stickers] : [];
+      } else {
+        selectedMood = '';
+        diaryText.value = '';
+        selectedTags = [];
+        selectedImages = [];
+        selectedStickers = [];
+      }
+      updateMoodButtons();
+      updateWordCount();
+      renderTagSelector();
+      renderImagePreview();
+    }
+
+    function updateMoodButtons() {
+      moodBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mood === selectedMood);
+      });
+    }
+
+    function setLoading(btn, text) {
+      btn.disabled = true;
+      btn.dataset.origText = btn.textContent;
+      btn.textContent = text;
+    }
+
+    function clearLoading(btn) {
+      btn.disabled = false;
+      btn.textContent = btn.dataset.origText;
+    }
+
+    function saveEntry() {
+      const dateStr = dateInput.value;
+      if (!selectedMood && !diaryText.value.trim()) {
+        showToast('请选择心情或写点什么');
+        return;
+      }
+      setLoading(saveBtn, '保存中...');
+      const data = loadData();
+      data[dateStr] = {
+        mood: selectedMood,
+        text: diaryText.value.trim(),
+        tags: [...selectedTags],
+        images: [...selectedImages],
+        stickers: [...selectedStickers],
+        updatedAt: new Date().toISOString()
+      };
+      saveData(data);
+      renderList();
+      renderStats();
+      renderStorageBar();
+      setTimeout(() => {
+        clearLoading(saveBtn);
+        showToast('保存成功！');
+      }, 300);
+    }
+
+    function deleteEntry() {
+      const dateStr = dateInput.value;
+      const data = loadData();
+      if (!data[dateStr]) {
+        showToast('当天没有记录');
+        return;
+      }
+      if (!confirm('确定要删除这天的记录吗？')) return;
+      setLoading(deleteBtn, '删除中...');
+      delete data[dateStr];
+      saveData(data);
+      selectedMood = '';
+      diaryText.value = '';
+      selectedTags = [];
+      selectedImages = [];
+      selectedStickers = [];
+      updateMoodButtons();
+      updateWordCount();
+      renderTagSelector();
+      renderImagePreview();
+      renderList();
+      renderStats();
+      renderStorageBar();
+      setTimeout(() => {
+        clearLoading(deleteBtn);
+        showToast('已删除');
+      }, 300);
+    }
+
+    function formatTime(isoStr) {
+      if (!isoStr) return '';
+      const d = new Date(isoStr);
+      const pad = n => String(n).padStart(2, '0');
+      return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate())
+        + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+
+    function renderList() {
+      const data = loadData();
+      const keyword = searchInput.value.trim().toLowerCase();
+      const dates = Object.keys(data).sort().reverse().filter(date => {
+        const entry = data[date];
+        if (filterMood && entry.mood !== filterMood) return false;
+        if (filterTag && !(entry.tags || []).includes(filterTag)) return false;
+        if (keyword) {
+          const haystack = (date + ' ' + (entry.text || '') + ' ' + (entry.mood || '') + ' ' + (entry.tags || []).join(' ')).toLowerCase();
+          if (!haystack.includes(keyword)) return false;
+        }
+        return true;
+      });
+      if (Object.keys(data).length === 0) {
+        historyList.innerHTML = '<div class="history-empty">还没有记录，开始写下你的第一篇日记吧！</div>';
+        return;
+      }
+      if (dates.length === 0) {
+        historyList.innerHTML = '<div class="history-empty">没有找到匹配的记录</div>';
+        return;
+      }
+      historyList.innerHTML = dates.map(date => {
+        const entry = data[date];
+        const raw = entry.text || '';
+        const trimmed = raw.length > 50 ? raw.slice(0, 50) + '...' : raw;
+        const preview = trimmed ? escapeHtml(trimmed) : '（无内容）';
+        const time = formatTime(entry.updatedAt);
+        return `<div class="history-entry" data-date="${date}">
+          <div class="mood">${entry.mood || '📝'}</div>
+          <div class="info">
+            <div class="date">${date}${time ? ' · 编辑于 ' + time : ''}</div>
+            <div class="preview">${preview}</div>
+            ${(entry.stickers && entry.stickers.length) || (entry.images && entry.images.length) ? '<div class="history-images">' + (entry.stickers || []).map(s => '<span style="font-size:20px">' + s + '</span>').join('') + (entry.images || []).map(src => '<img src="' + src + '">').join('') + '</div>' : ''}
+            ${(entry.tags && entry.tags.length) ? '<div class="entry-tags">' + entry.tags.map(t => '<span class="entry-tag">' + escapeHtml(t) + '</span>').join('') + '</div>' : ''}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // === Stats ===
+    const MOODS = ['😄','😊','😐','😢','😡'];
+    const MOOD_LABELS = {'😄':'开心','😊':'不错','😐':'一般','😢':'难过','😡':'生气'};
+    const MOOD_COLORS = {'😄':'#FFB347','😊':'#87CEEB','😐':'#9ACD32','😢':'#6CA0DC','😡':'#E57373'};
+    const MOOD_SCORES = {'😄':5,'😊':4,'😐':3,'😢':2,'😡':1};
+    let statsPeriod = 'month';
+
+    function getDateRange(period) {
+      const now = new Date();
+      const end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      let start;
+      if (period === 'week') {
+        const day = end.getDay() || 7;
+        start = new Date(end);
+        start.setDate(end.getDate() - day + 1);
+      } else if (period === 'month') {
+        start = new Date(end.getFullYear(), end.getMonth(), 1);
+      } else {
+        start = new Date(end.getFullYear(), 0, 1);
+      }
+      return { start, end };
+    }
+
+    function pad2(n) { return String(n).padStart(2, '0'); }
+
+    function toDateStr(d) {
+      return d.getFullYear() + '-' + pad2(d.getMonth()+1) + '-' + pad2(d.getDate());
+    }
+
+    function getStatsEntries(period) {
+      const data = loadData();
+      const { start, end } = getDateRange(period);
+      const entries = [];
+      const cur = new Date(start);
+      while (cur <= end) {
+        const ds = toDateStr(cur);
+        if (data[ds]) entries.push({ date: ds, ...data[ds] });
+        cur.setDate(cur.getDate() + 1);
+      }
+      return entries;
+    }
+
+    function renderMoodDist(entries) {
+      const distEl = document.getElementById('moodDist');
+      if (entries.length === 0) {
+        distEl.innerHTML = '<div class="stats-empty">该时段暂无记录</div>';
+        return;
+      }
+      const counts = {};
+      MOODS.forEach(m => counts[m] = 0);
+      entries.forEach(e => { if (e.mood && counts[e.mood] !== undefined) counts[e.mood]++; });
+      const max = Math.max(...Object.values(counts), 1);
+      distEl.innerHTML = MOODS.map(m => {
+        const pct = Math.round(counts[m] / max * 100);
+        return `<div class="mood-dist-item">
+          <div class="emoji">${m}</div>
+          <div class="bar-wrap">
+            <div class="label">${MOOD_LABELS[m]}</div>
+            <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${MOOD_COLORS[m]}"></div></div>
+          </div>
+          <div class="count">${counts[m]}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderTrendChart(entries) {
+      const canvas = document.getElementById('trendCanvas');
+      const ctx = canvas.getContext('2d');
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+      if (entries.length === 0) {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = 80;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#aaa';
+        ctx.font = '14px serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('该时段暂无记录', canvas.width / 2, 45);
+        return;
+      }
+
+      const dpr = window.devicePixelRatio || 1;
+      const pointGap = 48;
+      const padL = 36, padR = 20, padT = 40, padB = 40;
+      const w = Math.max(padL + padR + (entries.length - 1) * pointGap + 20, canvas.parentElement.clientWidth);
+      const h = 220;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, w, h);
+
+      const chartW = w - padL - padR;
+      const chartH = h - padT - padB;
+      const textColor = isDark ? '#999' : '#aaa';
+      const gridColor = isDark ? '#2a2a4e' : '#f0f0f0';
+
+      // Y-axis grid & labels
+      ctx.textAlign = 'center';
+      ctx.font = '16px serif';
+      for (let i = 1; i <= 5; i++) {
+        const y = padT + chartH - (i - 1) / 4 * chartH;
+        ctx.strokeStyle = gridColor;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(w - padR, y);
+        ctx.stroke();
+        const emoji = MOODS[5 - i]; // 5=😄 at top, 1=😡 at bottom
+        ctx.fillText(emoji, 16, y + 6);
+      }
+
+      // Points & line
+      const points = entries.map((e, i) => {
+        const x = padL + (entries.length === 1 ? chartW / 2 : i / (entries.length - 1) * chartW);
+        const score = MOOD_SCORES[e.mood] || 3;
+        const y = padT + chartH - (score - 1) / 4 * chartH;
+        return { x, y, mood: e.mood, date: e.date };
+      });
+
+      // Smooth curve
+      ctx.beginPath();
+      ctx.strokeStyle = '#5B9BD5';
+      ctx.lineWidth = 2.5;
+      ctx.lineJoin = 'round';
+      if (points.length === 1) {
+        ctx.arc(points[0].x, points[0].y, 2, 0, Math.PI * 2);
+        ctx.stroke();
+      } else {
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          const prev = points[i - 1];
+          const cur = points[i];
+          const cpx = (prev.x + cur.x) / 2;
+          ctx.bezierCurveTo(cpx, prev.y, cpx, cur.y, cur.x, cur.y);
+        }
+        ctx.stroke();
+      }
+
+      // Gradient fill under curve
+      if (points.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          const prev = points[i - 1];
+          const cur = points[i];
+          const cpx = (prev.x + cur.x) / 2;
+          ctx.bezierCurveTo(cpx, prev.y, cpx, cur.y, cur.x, cur.y);
+        }
+        ctx.lineTo(points[points.length - 1].x, padT + chartH);
+        ctx.lineTo(points[0].x, padT + chartH);
+        ctx.closePath();
+        const grad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
+        grad.addColorStop(0, isDark ? 'rgba(91,155,213,0.25)' : 'rgba(91,155,213,0.15)');
+        grad.addColorStop(1, isDark ? 'rgba(91,155,213,0)' : 'rgba(91,155,213,0)');
+        ctx.fillStyle = grad;
+        ctx.fill();
+      }
+
+      // Dots
+      points.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = MOOD_COLORS[p.mood] || '#5B9BD5';
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+
+      // X-axis date labels
+      ctx.fillStyle = textColor;
+      ctx.font = '11px serif';
+      ctx.textAlign = 'center';
+      const maxLabels = Math.floor(chartW / 56);
+      const step = Math.max(1, Math.ceil(points.length / maxLabels));
+      points.forEach((p, i) => {
+        if (i % step === 0 || i === points.length - 1) {
+          ctx.fillText(p.date.slice(5), p.x, h - 10);
+        }
+      });
+    }
+
+    function renderStats() {
+      const entries = getStatsEntries(statsPeriod);
+      renderMoodDist(entries);
+      renderTrendChart(entries);
+    }
+
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 2000);
+    }
+
+    // Event listeners
+    moodBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedMood = btn.dataset.mood === selectedMood ? '' : btn.dataset.mood;
+        updateMoodButtons();
+      });
+    });
+
+    // Image upload
+    document.getElementById('uploadBtn').addEventListener('click', () => {
+      document.getElementById('imageInput').click();
+    });
+    document.getElementById('imageInput').addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files);
+      if (!files.length) return;
+      const remaining = MAX_IMAGES - selectedImages.length;
+      if (remaining <= 0) { showToast('最多上传 ' + MAX_IMAGES + ' 张图片'); e.target.value = ''; return; }
+      const toProcess = files.slice(0, remaining);
+      if (files.length > remaining) showToast('最多上传 ' + MAX_IMAGES + ' 张，已截取前 ' + remaining + ' 张');
+      for (const file of toProcess) {
+        try {
+          const b64 = await compressImage(file);
+          selectedImages.push(b64);
+        } catch { showToast('图片处理失败'); }
+      }
+      renderImagePreview();
+      e.target.value = '';
+    });
+
+    // Sticker panel
+    document.getElementById('stickerToggle').addEventListener('click', () => {
+      document.getElementById('stickerPanel').classList.toggle('open');
+    });
+
+    // Image modal
+    document.getElementById('imgModal').addEventListener('click', () => {
+      document.getElementById('imgModal').classList.remove('open');
+    });
+
+    document.getElementById('periodTabs').addEventListener('click', (e) => {
+      const tab = e.target.closest('.period-tab');
+      if (!tab) return;
+      statsPeriod = tab.dataset.period;
+      document.querySelectorAll('.period-tab').forEach(t => t.classList.toggle('active', t.dataset.period === statsPeriod));
+      renderStats();
+    });
+
+    diaryText.addEventListener('input', updateWordCount);
+    searchInput.addEventListener('input', renderList);
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterMood = btn.dataset.mood;
+        filterBtns.forEach(b => b.classList.toggle('active', b.dataset.mood === filterMood));
+        renderList();
+      });
+    });
+    dateInput.addEventListener('change', () => loadEntry(dateInput.value));
+    saveBtn.addEventListener('click', saveEntry);
+    deleteBtn.addEventListener('click', deleteEntry);
+
+    historyList.addEventListener('click', (e) => {
+      const entry = e.target.closest('.history-entry');
+      if (entry) {
+        dateInput.value = entry.dataset.date;
+        loadEntry(entry.dataset.date);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+
+    // Init
+    const today = getToday();
+    dateInput.value = today;
+    dateInput.max = today;
+    renderStickerPanel();
+    loadEntry(today);
+    renderTagFilter();
+    renderList();
+    renderStats();
+    renderStorageBar();
+  </script>
+</body>
+</html>
