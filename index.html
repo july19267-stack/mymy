@@ -103,7 +103,8 @@
     }
 
     .mood-btn:hover {
-      background: #f0f7ff;
+      background: rgba(99,102,241,0.1);
+      transform: translateY(-3px);
     }
 
     .mood-btn.active {
@@ -769,6 +770,10 @@
 
   <div class="toast" id="toast"></div>
   <div class="img-modal" id="imgModal"><img id="imgModalImg" src=""></div>
+
+  * {
+  transition: all 0.25s ease;
+}
 
   <script>
     const dateInput = document.getElementById('dateInput');
